@@ -50,7 +50,7 @@ public:
       return;
     }
 
-    muduo::net::Buffer buf(sizeof(int32_t) + static_cast<size_t>(len));
+    muduo::net::Buffer buf;
 
     buf.appendInt32(static_cast<int32_t>(len));
     buf.append(message.data(), static_cast<size_t>(len));

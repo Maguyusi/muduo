@@ -38,7 +38,7 @@ class Socket : noncopyable
     : sockfd_(sockfd)
   { }
 
-  // Socket(Socket&&) // move constructor in C++11
+  // Socket(Socket&&) // move constructor
   ~Socket();
 
   int fd() const { return sockfd_; }

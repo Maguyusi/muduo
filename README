@@ -1,40 +1,176 @@
-Muduo is a multithreaded C++ network library based on
-the reactor pattern.
+Muduo is a multithreaded C++ network library based on the reactor pattern.
 
 http://github.com/chenshuo/muduo
 
 Copyright (c) 2010, Shuo Chen.  All rights reserved.
 
-Use of this source code is governed by a BSD-style
-license that can be found in the License file.
+Use of this source code is governed by a BSD-style license that can be found in
+the License file.
 
-Requires:
-  Linux kernel version >= 2.6.28.
-  GCC >= 4.7 or Clang >= 3.5
-  Boost (for boost::any only.)
+This fork is maintained as a Linux-only CMake project.
 
-Tested on:
-  Debian 7 and above
-  Unbuntu 14.04 and above
-  CentOS 7 and above
+Requirements
+============
 
-Install required packages:
-  # Debian, Ubuntu, etc.
-  $ sudo apt install g++ cmake make libboost-dev
-  # CentOS
-  $ sudo yum install gcc-c++ cmake make boost-devel
+Required:
 
-See .travis.yml for additional packages for building more examples.
+  * Linux kernel version >= 2.6.28
+  * CMake >= 3.16
+  * GCC or Clang with C++20 support
+  * Boost headers
+  * pthread
 
-To build, run:
-  ./build.sh
+Recommended:
 
-See https://github.com/chenshuo/muduo-tutorial for
-how to use muduo in your project.
+  * Ninja
+  * Protobuf and protoc, tested with Protobuf 6.33.6
+  * zlib, required by protobuf codec/protorpc targets
+  * c-ares, required by cdns and protobuf resolver examples
+  * libcurl, required by curl examples
+
+Install packages on Debian/Ubuntu:
+
+  sudo apt install g++ cmake ninja-build libboost-dev
+  sudo apt install protobuf-compiler libprotobuf-dev zlib1g-dev
+  sudo apt install libc-ares-dev libcurl4-openssl-dev
+
+Build With build.sh
+===================
+
+The simplest build entry is:
+
+  ./build.sh -j 4
+
+`build.sh` configures the project with modern CMake and then builds it:
+
+  cmake -S <source> -B <build-dir> -G Ninja ...
+  cmake --build <build-dir> -- <arguments>
+
+Default values:
+
+  * BUILD_TYPE=Release
+  * BUILD_DIR=out/build/linux-${BUILD_TYPE}
+  * INSTALL_DIR=out/install/linux-${BUILD_TYPE}
+  * GENERATOR=Ninja
+  * BUILD_EXAMPLES=ON
+  * ENABLE_PROTOBUF=ON
+
+Common examples:
+
+  # Release build, all default targets
+  ./build.sh -j 4
+
+  # Debug build
+  BUILD_TYPE=Debug ./build.sh -j 4
+
+  # Build one target
+  ./build.sh muduo_protobuf_codec -j 4
+
+  # Build protobuf RPC examples
+  ./build.sh protobuf_rpc_all -j 4
+
+  # Configure and build without examples/tests
+  BUILD_EXAMPLES=OFF ./build.sh -j 4
+
+  # Disable protobuf support
+  ENABLE_PROTOBUF=OFF ./build.sh -j 4
+
+  # Use a custom build directory
+  BUILD_DIR=out/build/local-debug BUILD_TYPE=Debug ./build.sh -j 4
+
+`build.sh` also links `compile_commands.json` into the source root for IDEs and
+language servers.
+
+Build With CMake
+================
+
+Manual configure and build:
+
+  cmake -S . -B out/build/linux-release -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=out/install/linux-release \
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+    -DMUDUO_BUILD_EXAMPLES=ON \
+    -DMUDUO_ENABLE_PROTOBUF=ON
+
+  cmake --build out/build/linux-release -j 4
+
+Install:
+
+  cmake --install out/build/linux-release
+
+Run tests:
+
+  CTEST_OUTPUT_ON_FAILURE=TRUE cmake --build out/build/linux-release --target test
+
+Useful targets:
+
+  * muduo_base
+  * muduo_net
+  * muduo_http
+  * muduo_inspect
+  * muduo_protobuf_codec
+  * muduo_protorpc
+  * protobuf_codec_all
+  * protobuf_rpc_all
+
+CMake options:
+
+  * MUDUO_BUILD_EXAMPLES: build examples and tests. Default is ON for a top-level
+    build and OFF when muduo is included by another project.
+  * MUDUO_ENABLE_PROTOBUF: build protobuf-based libraries/examples when protobuf,
+    protoc, and zlib are available. Default is ON.
+
+Build With CMake Presets
+========================
+
+Linux presets are provided for IDEs and command-line use:
+
+  * linux-debug-static
+  * linux-release-static
+  * linux-debug-shared
+  * linux-release-shared
+
+Examples:
+
+  cmake --preset linux-debug-shared
+  cmake --build out/build/linux-debug-shared -j 4
+
+  cmake --preset linux-release-shared
+  cmake --build out/build/linux-release-shared --target protobuf_rpc_all -j 4
+
+Optional Dependencies
+=====================
+
+Optional libraries are detected at configure time. If a dependency is missing,
+the related examples are skipped instead of breaking the whole build.
+
+Notable optional dependencies:
+
+  * c-ares: enables `muduo_cdns`, `cdns`, and protobuf resolver examples.
+  * Protobuf + protoc + zlib: enables protobuf codec/protorpc libraries and
+    protobuf examples.
+  * libcurl: enables curl examples.
+  * gperftools/tcmalloc, hiredis, gd, thrift, microhttpd: enable their related
+    examples or optional link paths when available.
+
+If an optional dependency is installed after a failed configure, rerun CMake so
+the cache is refreshed:
+
+  cmake -S . -B out/build/linux-release -G Ninja
+
+Notes
+=====
+
+The project is intentionally Linux-only. Configuring it on non-Linux systems
+will fail at the top-level CMake project.
+
+See https://github.com/chenshuo/muduo-tutorial for how to use muduo in your
+project.
+
   __  __           _
  |  \/  |         | |
  | \  / |_   _  __| |_   _  ___
  | |\/| | | | |/ _` | | | |/ _ \
  | |  | | |_| | (_| | |_| | (_) |
  |_|  |_|\__,_|\__,_|\__,_|\___/
-

@@ -51,7 +51,7 @@ class TimeZone : public muduo::copyable
 
   bool valid() const
   {
-    // 'explicit operator bool() const' in C++11
+    // std::unique_ptr uses explicit operator bool().
     return static_cast<bool>(data_);
   }
 

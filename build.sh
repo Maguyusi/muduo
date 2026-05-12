@@ -1,27 +1,26 @@
 #!/bin/sh
 
+set -eu
 set -x
 
-SOURCE_DIR=`pwd`
-BUILD_DIR=${BUILD_DIR:-../build}
-BUILD_TYPE=${BUILD_TYPE:-release}
-INSTALL_DIR=${INSTALL_DIR:-../${BUILD_TYPE}-install-cpp11}
-CXX=${CXX:-g++}
+SOURCE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+BUILD_TYPE=${BUILD_TYPE:-Release}
+BUILD_DIR=${BUILD_DIR:-"$SOURCE_DIR/out/build/linux-${BUILD_TYPE}"}
+INSTALL_DIR=${INSTALL_DIR:-"$SOURCE_DIR/out/install/linux-${BUILD_TYPE}"}
+GENERATOR=${GENERATOR:-Ninja}
+BUILD_EXAMPLES=${BUILD_EXAMPLES:-ON}
+ENABLE_PROTOBUF=${ENABLE_PROTOBUF:-ON}
 
-ln -sf $BUILD_DIR/$BUILD_TYPE-cpp11/compile_commands.json
+cmake -S "$SOURCE_DIR" -B "$BUILD_DIR" -G "$GENERATOR" \
+  -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+  -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+  -DMUDUO_BUILD_EXAMPLES="$BUILD_EXAMPLES" \
+  -DMUDUO_ENABLE_PROTOBUF="$ENABLE_PROTOBUF"
 
-mkdir -p $BUILD_DIR/$BUILD_TYPE-cpp11 \
-  && cd $BUILD_DIR/$BUILD_TYPE-cpp11 \
-  && cmake \
-           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-           -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-           $SOURCE_DIR \
-  && make $*
+ln -sf "$BUILD_DIR/compile_commands.json" "$SOURCE_DIR/compile_commands.json"
 
-# Use the following command to run all the unit tests
-# at the dir $BUILD_DIR/$BUILD_TYPE :
-# CTEST_OUTPUT_ON_FAILURE=TRUE make test
+cmake --build "$BUILD_DIR" -- "$@"
 
-# cd $SOURCE_DIR && doxygen
-
+# Run tests with:
+# CTEST_OUTPUT_ON_FAILURE=TRUE cmake --build "$BUILD_DIR" --target test

@@ -295,7 +295,7 @@ DateTime BreakTime(int64_t t)
   struct DateTime dt;
   int seconds = static_cast<int>(t % kSecondsPerDay);
   int days = static_cast<int>(t / kSecondsPerDay);
-  // C++11 rounds towards zero.
+  // Signed integer division rounds towards zero.
   if (seconds < 0)
   {
     seconds += kSecondsPerDay;

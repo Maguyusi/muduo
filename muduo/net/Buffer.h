@@ -387,33 +387,7 @@ class Buffer : public muduo::copyable
   const char* begin() const
   { return &*buffer_.begin(); }
 
-    void makeSpace(size_t len)
-    {
-        if (writableBytes() >= len)
-        {
-            return;
-        }
-
-        const size_t readable = readableBytes();
-
-        if (writableBytes() + prependableBytes() - kCheapPrepend >= len)
-        {
-            std::copy(begin() + readerIndex_,
-                  begin() + writerIndex_,
-                  begin() + kCheapPrepend);
-
-            readerIndex_ = kCheapPrepend;
-            writerIndex_ = readerIndex_ + readable;
-        }
-        else
-        {
-            const size_t newSize = writerIndex_ + len;
-            buffer_.resize(newSize);
-        }
-
-        assert(readable == readableBytes());
-        assert(writableBytes() >= len);
-    }
+  void makeSpace(size_t len);
 
  private:
   std::vector<char> buffer_;

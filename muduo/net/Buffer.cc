@@ -22,6 +22,33 @@ const char Buffer::kCRLF[] = "\r\n";
 const size_t Buffer::kCheapPrepend;
 const size_t Buffer::kInitialSize;
 
+void Buffer::makeSpace(size_t len)
+{
+  if (writableBytes() >= len)
+  {
+    return;
+  }
+
+  const size_t readable = readableBytes();
+
+  if (writableBytes() + prependableBytes() - kCheapPrepend >= len)
+  {
+    std::copy(begin() + readerIndex_,
+              begin() + writerIndex_,
+              begin() + kCheapPrepend);
+
+    readerIndex_ = kCheapPrepend;
+    writerIndex_ = readerIndex_ + readable;
+  }
+  else
+  {
+    buffer_.resize(writerIndex_ + len);
+  }
+
+  assert(readable == readableBytes());
+  assert(writableBytes() >= len);
+}
+
 ssize_t Buffer::readFd(int fd, int* savedErrno)
 {
   // saved an ioctl()/FIONREAD call to tell how much to read

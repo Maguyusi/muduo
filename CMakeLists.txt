@@ -49,7 +49,7 @@ find_path(THRIFT_INCLUDE_DIR thrift)
 find_library(THRIFT_LIBRARY NAMES thrift)
 
 add_library(muduo_public_config INTERFACE)
-target_compile_features(muduo_public_config INTERFACE cxx_std_11)
+target_compile_features(muduo_public_config INTERFACE cxx_std_20)
 target_compile_definitions(muduo_public_config
   INTERFACE
     CHECK_PTHREAD_RETURN_VALUE
