@@ -1,5 +1,5 @@
-add_executable(idleconnection_echo echo.cc main.cc)
-target_link_libraries(idleconnection_echo muduo_net)
+muduo_add_executable(idleconnection_echo echo.cc main.cc)
+target_link_libraries(idleconnection_echo PRIVATE muduo_net)
 
-add_executable(idleconnection_echo2 sortedlist.cc)
-target_link_libraries(idleconnection_echo2 muduo_net)
+muduo_add_executable(idleconnection_echo2 sortedlist.cc)
+target_link_libraries(idleconnection_echo2 PRIVATE muduo_net)

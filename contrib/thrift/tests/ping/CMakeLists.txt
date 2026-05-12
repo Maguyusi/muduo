@@ -1,4 +1,3 @@
-include_directories(gen-cpp)
 set(PING_THRIFT ping.thrift)
 execute_process(COMMAND ${THRIFT_COMPILER} --gen cpp ${PING_THRIFT}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
@@ -12,5 +11,6 @@ set(PING_THRIFT_SRCS
 set(PING_SRCS
     PingServer.cc
     )
-add_executable(muduo_thrift_ping ${PING_SRCS} ${PING_THRIFT_SRCS})
-target_link_libraries(muduo_thrift_ping muduo_thrift)
+muduo_add_executable(muduo_thrift_ping ${PING_SRCS} ${PING_THRIFT_SRCS})
+target_include_directories(muduo_thrift_ping PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp")
+target_link_libraries(muduo_thrift_ping PRIVATE muduo_thrift)

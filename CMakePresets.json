@@ -1,0 +1,155 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "linux-base",
+      "displayName": "Linux Base",
+      "hidden": true,
+      "description": "面向适用于 Linux 的 Windows 子系统(WSL)或远程 Linux 系统。",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
+          "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}"
+        }
+      },
+      "environment": {}
+    },
+    {
+      "name": "linux-debug-static",
+      "displayName": "Linux Debug Static",
+      "description": "Linux Debug，第三方库走静态目录。",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "MM_LINUX_LINK_TYPE": "Static"
+      }
+    },
+    {
+      "name": "linux-release-static",
+      "displayName": "Linux Release Static",
+      "description": "Linux Release，第三方库走静态目录。",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "MM_LINUX_LINK_TYPE": "Static"
+      }
+    },
+    {
+      "name": "linux-debug-shared",
+      "displayName": "Linux Debug Shared",
+      "description": "Linux Debug，第三方库走动态目录。",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "MM_LINUX_LINK_TYPE": "Shared"
+      }
+    },
+    {
+      "name": "linux-release-shared",
+      "displayName": "Linux Release Shared",
+      "description": "Linux Release，第三方库走动态目录。",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "MM_LINUX_LINK_TYPE": "Shared"
+      }
+    },
+    {
+      "name": "macos-debug",
+      "displayName": "macOS Debug",
+      "description": "以远程 macOS 系统为目标。",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
+          "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}"
+        }
+      }
+    },
+    {
+      "name": "windows-base",
+      "displayName": "Windows Base",
+      "hidden": true,
+      "description": "面向 Windows 的 Ninja 构建基础预设。",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "x64-debug-mtd",
+      "displayName": "x64 Debug MTD",
+      "description": "面向 Windows (64 位) 的 Ninja Debug 静态运行时构建。",
+      "inherits": "windows-base",
+      "binaryDir": "${sourceDir}/out/build/x64-debug-mtd",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "MM_MSVC_RUNTIME": "Static",
+        "CMAKE_EXE_LINKER_FLAGS": "/ignore:4099 /ignore:4204",
+        "CMAKE_SHARED_LINKER_FLAGS": "/ignore:4099 /ignore:4204",
+        "CMAKE_MODULE_LINKER_FLAGS": "/ignore:4099 /ignore:4204"
+      }
+    },
+    {
+      "name": "x64-release-mt",
+      "displayName": "x64 Release MT",
+      "description": "面向 Windows (64 位) 的 Ninja Release 静态运行时构建。",
+      "inherits": "windows-base",
+      "binaryDir": "${sourceDir}/out/build/x64-release-mt",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "MM_MSVC_RUNTIME": "Static",
+        "CMAKE_EXE_LINKER_FLAGS": "/ignore:4099 /ignore:4204",
+        "CMAKE_SHARED_LINKER_FLAGS": "/ignore:4099 /ignore:4204",
+        "CMAKE_MODULE_LINKER_FLAGS": "/ignore:4099 /ignore:4204"
+      }
+    },
+    {
+      "name": "x64-debug-mdd",
+      "displayName": "x64 Debug MDD",
+      "description": "面向 Windows (64 位) 的 Ninja Debug 动态运行时构建。",
+      "inherits": "windows-base",
+      "binaryDir": "${sourceDir}/out/build/x64-debug-mdd",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "MM_MSVC_RUNTIME": "Dynamic",
+        "CMAKE_EXE_LINKER_FLAGS": "/ignore:4099 /ignore:4204",
+        "CMAKE_SHARED_LINKER_FLAGS": "/ignore:4099 /ignore:4204",
+        "CMAKE_MODULE_LINKER_FLAGS": "/ignore:4099 /ignore:4204"
+      }
+    },
+    {
+      "name": "x64-release-md",
+      "displayName": "x64 Release MD",
+      "description": "面向 Windows (64 位) 的 Ninja Release 动态运行时构建。",
+      "inherits": "windows-base",
+      "binaryDir": "${sourceDir}/out/build/x64-release-md",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "MM_MSVC_RUNTIME": "Dynamic",
+        "CMAKE_EXE_LINKER_FLAGS": "/ignore:4099 /ignore:4204",
+        "CMAKE_SHARED_LINKER_FLAGS": "/ignore:4099 /ignore:4204",
+        "CMAKE_MODULE_LINKER_FLAGS": "/ignore:4099 /ignore:4204"
+      }
+    }
+  ]
+}

@@ -17,7 +17,7 @@ using namespace muduo::net;
 
 void HttpResponse::appendToBuffer(Buffer* output) const
 {
-  char buf[32];
+  char buf[64];
   snprintf(buf, sizeof buf, "HTTP/1.1 %d ", statusCode_);
   output->append(buf);
   output->append(statusMessage_);
@@ -29,7 +29,7 @@ void HttpResponse::appendToBuffer(Buffer* output) const
   }
   else
   {
-    snprintf(buf, sizeof buf, "Content-Length: %zd\r\n", body_.size());
+    snprintf(buf, sizeof buf, "Content-Length: %zu\r\n", body_.size());
     output->append(buf);
     output->append("Connection: Keep-Alive\r\n");
   }

@@ -1,5 +1,5 @@
-add_executable(wordcount_hasher hasher.cc)
-target_link_libraries(wordcount_hasher muduo_net)
+muduo_add_executable(wordcount_hasher hasher.cc)
+target_link_libraries(wordcount_hasher PRIVATE muduo_net)
 
-add_executable(wordcount_receiver receiver.cc)
-target_link_libraries(wordcount_receiver muduo_net)
+muduo_add_executable(wordcount_receiver receiver.cc)
+target_link_libraries(wordcount_receiver PRIVATE muduo_net)

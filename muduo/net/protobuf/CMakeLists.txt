@@ -1,15 +1,14 @@
-add_library(muduo_protobuf_codec ProtobufCodecLite.cc)
-set_target_properties(muduo_protobuf_codec PROPERTIES COMPILE_FLAGS "-Wno-error=shadow")
-target_link_libraries(muduo_protobuf_codec muduo_net protobuf z)
+muduo_add_library(muduo_protobuf_codec ProtobufCodecLite.cc)
+muduo_target_uses_protobuf(muduo_protobuf_codec)
+muduo_target_no_shadow_error(muduo_protobuf_codec)
+target_link_libraries(muduo_protobuf_codec
+  PUBLIC
+    muduo_net
+    muduo::protobuf
+  PRIVATE
+    ZLIB::ZLIB)
 
-#add_library(muduo_protobuf_codec_cpp11 ProtobufCodecLite.cc)
-#set_target_properties(muduo_protobuf_codec_cpp11 PROPERTIES COMPILE_FLAGS "-std=c++0x -Wno-error=shadow")
-#target_link_libraries(muduo_protobuf_codec_cpp11 muduo_net_cpp11 protobuf z)
-
-
-install(TARGETS muduo_protobuf_codec DESTINATION lib)
-#install(TARGETS muduo_protobuf_codec_cpp11 DESTINATION lib)
+muduo_install_library(muduo_protobuf_codec)
 
 file(GLOB HEADERS "*.h")
-install(FILES ${HEADERS} DESTINATION include/muduo/net/protobuf)
-
+install(FILES ${HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/muduo/net/protobuf")

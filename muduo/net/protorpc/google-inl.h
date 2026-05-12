@@ -36,7 +36,10 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
+#include "muduo/base/Logging.h"
+
 #include <google/protobuf/message.h>
+#include <string>
 
 // When serializing, we first compute the byte size, then serialize the message.
 // If serialization produces a different number of bytes than expected, we
@@ -49,13 +52,17 @@ void ByteSizeConsistencyError(int byte_size_before_serialization,
                               int byte_size_after_serialization,
                               int bytes_produced_by_serialization)
 {
-  GOOGLE_CHECK_EQ(byte_size_before_serialization, byte_size_after_serialization)
-      << "Protocol message was modified concurrently during serialization.";
-  GOOGLE_CHECK_EQ(bytes_produced_by_serialization, byte_size_before_serialization)
-      << "Byte size calculation and serialization were inconsistent.  This "
-         "may indicate a bug in protocol buffers or it may be caused by "
-         "concurrent modification of the message.";
-  GOOGLE_LOG(FATAL) << "This shouldn't be called if all the sizes are equal.";
+  if (byte_size_before_serialization != byte_size_after_serialization)
+  {
+    LOG_FATAL << "Protocol message was modified concurrently during serialization.";
+  }
+  if (bytes_produced_by_serialization != byte_size_before_serialization)
+  {
+    LOG_FATAL << "Byte size calculation and serialization were inconsistent.  This "
+              << "may indicate a bug in protocol buffers or it may be caused by "
+              << "concurrent modification of the message.";
+  }
+  LOG_FATAL << "This shouldn't be called if all the sizes are equal.";
 }
 
 inline
@@ -75,7 +82,8 @@ std::string InitializationErrorMessage(const char* action,
   result += "Can't ";
   result += action;
   result += " message of type \"";
-  result += message.GetTypeName();
+  auto typeName = message.GetTypeName();
+  result.append(typeName.data(), typeName.size());
   result += "\" because it is missing required fields: ";
   result += message.InitializationErrorString();
   return result;

@@ -1,18 +1,27 @@
-add_custom_command(OUTPUT resolver.pb.cc resolver.pb.h
-  COMMAND protoc
-  ARGS --cpp_out . ${CMAKE_CURRENT_SOURCE_DIR}/resolver.proto -I${CMAKE_CURRENT_SOURCE_DIR}
-  DEPENDS resolver.proto)
+muduo_protobuf_generate_cpp(RESOLVER_PROTO_SRC RESOLVER_PROTO_HDR resolver.proto)
+muduo_target_generated_protobuf_source("${RESOLVER_PROTO_SRC}")
 
-set_source_files_properties(resolver.pb.cc PROPERTIES COMPILE_FLAGS "-Wno-conversion -Wno-shadow")
-include_directories(${PROJECT_BINARY_DIR})
+muduo_add_library(resolver_proto "${RESOLVER_PROTO_SRC}")
+muduo_target_uses_protobuf(resolver_proto)
+target_include_directories(resolver_proto PUBLIC "${PROJECT_BINARY_DIR}")
+target_link_libraries(resolver_proto
+  PUBLIC
+    muduo::protobuf
+    Threads::Threads)
 
-add_library(resolver_proto resolver.pb.cc)
-target_link_libraries(resolver_proto protobuf pthread)
+muduo_add_executable(protobuf_rpc_resolver_client client.cc)
+muduo_target_uses_protobuf(protobuf_rpc_resolver_client)
+muduo_target_no_shadow_error(protobuf_rpc_resolver_client)
+target_link_libraries(protobuf_rpc_resolver_client
+  PRIVATE
+    resolver_proto
+    muduo_protorpc)
 
-add_executable(protobuf_rpc_resolver_client client.cc)
-set_target_properties(protobuf_rpc_resolver_client PROPERTIES COMPILE_FLAGS "-Wno-error=shadow")
-target_link_libraries(protobuf_rpc_resolver_client resolver_proto muduo_protorpc)
-
-add_executable(protobuf_rpc_resolver_server server.cc)
-set_target_properties(protobuf_rpc_resolver_server PROPERTIES COMPILE_FLAGS "-Wno-error=shadow")
-target_link_libraries(protobuf_rpc_resolver_server resolver_proto muduo_protorpc muduo_cdns)
+muduo_add_executable(protobuf_rpc_resolver_server server.cc)
+muduo_target_uses_protobuf(protobuf_rpc_resolver_server)
+muduo_target_no_shadow_error(protobuf_rpc_resolver_server)
+target_link_libraries(protobuf_rpc_resolver_server
+  PRIVATE
+    resolver_proto
+    muduo_protorpc
+    muduo_cdns)

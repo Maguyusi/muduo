@@ -24,42 +24,25 @@ void ProtobufCodec::fillEmptyBuffer(Buffer* buf, const google::protobuf::Message
   // buf->retrieveAll();
   assert(buf->readableBytes() == 0);
 
-  const std::string& typeName = message.GetTypeName();
+  auto typeName = message.GetTypeName();
   int32_t nameLen = static_cast<int32_t>(typeName.size()+1);
   buf->appendInt32(nameLen);
-  buf->append(typeName.c_str(), nameLen);
+  buf->append(typeName.data(), typeName.size());
+  buf->appendInt8(0);
 
-  // code copied from MessageLite::SerializeToArray() and MessageLite::SerializePartialToArray().
-  GOOGLE_DCHECK(message.IsInitialized()) << InitializationErrorMessage("serialize", message);
+  if (!message.IsInitialized())
+  {
+    LOG_FATAL << InitializationErrorMessage("serialize", message);
+  }
 
-  /**
-   * 'ByteSize()' of message is deprecated in Protocol Buffers v3.4.0 firstly.
-   * But, till to v3.11.0, it just getting start to be marked by '__attribute__((deprecated()))'.
-   * So, here, v3.9.2 is selected as maximum version using 'ByteSize()' to avoid
-   * potential effect for previous muduo code/projects as far as possible.
-   * Note: All information above just INFER from
-   * 1) https://github.com/protocolbuffers/protobuf/releases/tag/v3.4.0
-   * 2) MACRO in file 'include/google/protobuf/port_def.inc'.
-   * eg. '#define PROTOBUF_DEPRECATED_MSG(msg) __attribute__((deprecated(msg)))'.
-   * In addition, usage of 'ToIntSize()' comes from Impl of ByteSize() in new version's Protocol Buffers.
-   */
-
-  #if GOOGLE_PROTOBUF_VERSION > 3009002
-    int byte_size = google::protobuf::internal::ToIntSize(message.ByteSizeLong());
-  #else
-    int byte_size = message.ByteSize();
-  #endif
+  int byte_size = google::protobuf::internal::ToIntSize(message.ByteSizeLong());
   buf->ensureWritableBytes(byte_size);
 
   uint8_t* start = reinterpret_cast<uint8_t*>(buf->beginWrite());
   uint8_t* end = message.SerializeWithCachedSizesToArray(start);
   if (end - start != byte_size)
   {
-    #if GOOGLE_PROTOBUF_VERSION > 3009002
-      ByteSizeConsistencyError(byte_size, google::protobuf::internal::ToIntSize(message.ByteSizeLong()), static_cast<int>(end - start));
-    #else
-      ByteSizeConsistencyError(byte_size, message.ByteSize(), static_cast<int>(end - start));
-    #endif
+    ByteSizeConsistencyError(byte_size, google::protobuf::internal::ToIntSize(message.ByteSizeLong()), static_cast<int>(end - start));
   }
   buf->hasWritten(byte_size);
 

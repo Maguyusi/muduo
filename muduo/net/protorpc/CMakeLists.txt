@@ -1,34 +1,50 @@
-add_custom_command(OUTPUT rpc.pb.cc rpc.pb.h
-  COMMAND protoc
-  ARGS --cpp_out . ${CMAKE_CURRENT_SOURCE_DIR}/rpc.proto -I${CMAKE_CURRENT_SOURCE_DIR}
-  DEPENDS rpc.proto
-  VERBATIM )
+muduo_protobuf_generate_cpp(RPC_PROTO_SRC RPC_PROTO_HDR rpc.proto)
+muduo_target_generated_protobuf_source("${RPC_PROTO_SRC}")
 
-set_source_files_properties(rpc.pb.cc PROPERTIES COMPILE_FLAGS "-Wno-conversion")
-include_directories(${PROJECT_BINARY_DIR})
-
-add_library(muduo_protorpc_wire rpc.pb.cc RpcCodec.cc)
-set_target_properties(muduo_protorpc_wire PROPERTIES COMPILE_FLAGS "-Wno-error=shadow")
-
-#add_library(muduo_protorpc_wire_cpp11 rpc.pb.cc RpcCodec.cc)
-#set_target_properties(muduo_protorpc_wire_cpp11 PROPERTIES COMPILE_FLAGS "-std=c++0x -Wno-error=shadow")
+muduo_add_library(muduo_protorpc_wire
+  "${RPC_PROTO_SRC}"
+  RpcCodec.cc)
+muduo_target_uses_protobuf(muduo_protorpc_wire)
+muduo_target_no_shadow_error(muduo_protorpc_wire)
+target_include_directories(muduo_protorpc_wire
+  PUBLIC
+    "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/muduo/net/protorpc>")
+target_link_libraries(muduo_protorpc_wire
+  PUBLIC
+    muduo_protobuf_codec
+    muduo::protobuf)
 
 if(MUDUO_BUILD_EXAMPLES)
-add_executable(protobuf_rpc_wire_test RpcCodec_test.cc)
-target_link_libraries(protobuf_rpc_wire_test muduo_protorpc_wire muduo_protobuf_codec)
-set_target_properties(protobuf_rpc_wire_test PROPERTIES COMPILE_FLAGS "-Wno-error=shadow")
+  muduo_add_executable(protobuf_rpc_wire_test RpcCodec_test.cc)
+  muduo_target_uses_protobuf(protobuf_rpc_wire_test)
+  muduo_target_no_shadow_error(protobuf_rpc_wire_test)
+  target_link_libraries(protobuf_rpc_wire_test
+    PRIVATE
+      muduo_protorpc_wire
+      muduo_protobuf_codec)
 endif()
 
-add_library(muduo_protorpc RpcChannel.cc RpcServer.cc)
-set_target_properties(muduo_protorpc PROPERTIES COMPILE_FLAGS "-Wno-error=shadow")
-target_link_libraries(muduo_protorpc muduo_protorpc_wire muduo_protobuf_codec muduo_net protobuf z)
+muduo_add_library(muduo_protorpc
+  RpcChannel.cc
+  RpcServer.cc)
+muduo_target_uses_protobuf(muduo_protorpc)
+muduo_target_no_shadow_error(muduo_protorpc)
+target_link_libraries(muduo_protorpc
+  PUBLIC
+    muduo_protorpc_wire
+    muduo_protobuf_codec
+    muduo_net
+    muduo::protobuf
+  PRIVATE
+    ZLIB::ZLIB)
 
-if(TCMALLOC_LIBRARY)
-  target_link_libraries(muduo_protorpc tcmalloc_and_profiler)
+if(TARGET muduo::tcmalloc)
+  target_link_libraries(muduo_protorpc PRIVATE muduo::tcmalloc)
 endif()
 
-install(TARGETS muduo_protorpc_wire muduo_protorpc DESTINATION lib)
-#install(TARGETS muduo_protorpc_wire_cpp11 DESTINATION lib)
+muduo_install_library(muduo_protorpc_wire)
+muduo_install_library(muduo_protorpc)
 
 set(HEADERS
   RpcCodec.h
@@ -36,7 +52,6 @@ set(HEADERS
   RpcServer.h
   rpc.proto
   rpcservice.proto
-  ${PROJECT_BINARY_DIR}/muduo/net/protorpc/rpc.pb.h
+  "${RPC_PROTO_HDR}"
   )
-install(FILES ${HEADERS} DESTINATION include/muduo/net/protorpc)
-
+install(FILES ${HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/muduo/net/protorpc")

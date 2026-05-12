@@ -1,8 +1,8 @@
-add_executable(procmon procmon.cc plot.cc)
-target_link_libraries(procmon muduo_http gd)
+muduo_add_executable(procmon procmon.cc plot.cc)
+target_link_libraries(procmon PRIVATE muduo_http muduo::gd)
 
-add_executable(plot_test plot_test.cc plot.cc)
-target_link_libraries(plot_test muduo_base gd)
+muduo_add_executable(plot_test plot_test.cc plot.cc)
+target_link_libraries(plot_test PRIVATE muduo_base muduo::gd)
 
-add_executable(dummyload dummyload.cc)
-target_link_libraries(dummyload muduo_net)
+muduo_add_executable(dummyload dummyload.cc)
+target_link_libraries(dummyload PRIVATE muduo_net)

@@ -1,9 +1,9 @@
-include_directories(${PROJECT_BINARY_DIR})
+muduo_add_executable(protobuf_rpc_balancer balancer.cc)
+muduo_target_uses_protobuf(protobuf_rpc_balancer)
+muduo_target_no_shadow_error(protobuf_rpc_balancer)
+target_link_libraries(protobuf_rpc_balancer PRIVATE muduo_protorpc)
 
-add_executable(protobuf_rpc_balancer balancer.cc)
-set_target_properties(protobuf_rpc_balancer PROPERTIES COMPILE_FLAGS "-Wno-error=shadow")
-target_link_libraries(protobuf_rpc_balancer muduo_protorpc)
-
-add_executable(protobuf_rpc_balancer_raw balancer_raw.cc)
-set_target_properties(protobuf_rpc_balancer_raw PROPERTIES COMPILE_FLAGS "-Wno-error=shadow")
-target_link_libraries(protobuf_rpc_balancer_raw muduo_protorpc)
+muduo_add_executable(protobuf_rpc_balancer_raw balancer_raw.cc)
+muduo_target_uses_protobuf(protobuf_rpc_balancer_raw)
+muduo_target_no_shadow_error(protobuf_rpc_balancer_raw)
+target_link_libraries(protobuf_rpc_balancer_raw PRIVATE muduo_protorpc)

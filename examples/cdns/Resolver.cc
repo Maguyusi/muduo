@@ -5,7 +5,6 @@
 #include "muduo/net/EventLoop.h"
 
 #include <ares.h>
-#include <netdb.h>
 #include <arpa/inet.h>  // inet_ntop
 #include <netinet/in.h>
 
@@ -79,8 +78,13 @@ bool Resolver::resolve(StringArg hostname, const Callback& cb)
 {
   loop_->assertInLoopThread();
   QueryData* queryData = new QueryData(this, cb);
-  ares_gethostbyname(ctx_, hostname.c_str(), AF_INET,
-      &Resolver::ares_host_callback, queryData);
+
+  struct ares_addrinfo_hints hints;
+  memZero(&hints, sizeof hints);
+  hints.ai_family = AF_INET;
+  ares_getaddrinfo(ctx_, hostname.c_str(), NULL, &hints,
+      &Resolver::ares_addrinfo_callback, queryData);
+
   struct timeval tv;
   struct timeval* tvp = ares_timeout(ctx_, NULL, &tv);
   double timeout = getSeconds(tvp);
@@ -118,30 +122,47 @@ void Resolver::onTimer()
   }
 }
 
-void Resolver::onQueryResult(int status, struct hostent* result, const Callback& callback)
+void Resolver::onQueryResult(int status, const struct ares_addrinfo* result, const Callback& callback)
 {
   LOG_DEBUG << "onQueryResult " << status;
   struct sockaddr_in addr;
   memZero(&addr, sizeof addr);
   addr.sin_family = AF_INET;
   addr.sin_port = 0;
-  if (result)
+  if (status == ARES_SUCCESS && result)
   {
-    addr.sin_addr = *reinterpret_cast<in_addr*>(result->h_addr);
+    const struct ares_addrinfo_node* node = result->nodes;
+    while (node && node->ai_family != AF_INET)
+    {
+      node = node->ai_next;
+    }
+
+    if (node && node->ai_addr)
+    {
+      const struct sockaddr_in* resolved =
+          reinterpret_cast<const struct sockaddr_in*>(node->ai_addr);
+      addr.sin_addr = resolved->sin_addr;
+    }
+
     if (kDebug)
     {
-      printf("h_name %s\n", result->h_name);
-      for (char** alias = result->h_aliases; *alias != NULL; ++alias)
+      printf("name %s\n", result->name ? result->name : "");
+      for (const struct ares_addrinfo_cname* cname = result->cnames;
+           cname != NULL;
+           cname = cname->next)
       {
-        printf("alias: %s\n", *alias);
+        printf("cname: %s -> %s\n", cname->alias, cname->name);
       }
-      // printf("ttl %d\n", ttl);
-      // printf("h_length %d\n", result->h_length);
-      for (char** haddr = result->h_addr_list; *haddr != NULL; ++haddr)
+      for (node = result->nodes; node != NULL; node = node->ai_next)
       {
-        char buf[32];
-        inet_ntop(AF_INET, *haddr, buf, sizeof buf);
-        printf("  %s\n", buf);
+        if (node->ai_family == AF_INET && node->ai_addr)
+        {
+          const struct sockaddr_in* resolved =
+              reinterpret_cast<const struct sockaddr_in*>(node->ai_addr);
+          char buf[INET_ADDRSTRLEN];
+          inet_ntop(AF_INET, &resolved->sin_addr, buf, sizeof buf);
+          printf("  %s\n", buf);
+        }
       }
     }
   }
@@ -178,11 +199,15 @@ void Resolver::onSockStateChange(int sockfd, bool read, bool write)
   }
 }
 
-void Resolver::ares_host_callback(void* data, int status, int timeouts, struct hostent* hostent)
+void Resolver::ares_addrinfo_callback(void* data, int status, int timeouts, struct ares_addrinfo* result)
 {
   QueryData* query = static_cast<QueryData*>(data);
 
-  query->owner->onQueryResult(status, hostent, query->callback);
+  query->owner->onQueryResult(status, result, query->callback);
+  if (result)
+  {
+    ares_freeaddrinfo(result);
+  }
   delete query;
 }
 

@@ -11,6 +11,9 @@
 #include "muduo/base/Types.h"
 #include <assert.h>
 #include <string.h> // memcpy
+#if __cplusplus >= 201703L
+#include <string_view>
+#endif
 
 namespace muduo
 {
@@ -146,6 +149,14 @@ class LogStream : noncopyable
     buffer_.append(v.data(), v.size());
     return *this;
   }
+
+#if __cplusplus >= 201703L
+  self& operator<<(std::string_view v)
+  {
+    buffer_.append(v.data(), v.size());
+    return *this;
+  }
+#endif
 
   self& operator<<(const Buffer& v)
   {

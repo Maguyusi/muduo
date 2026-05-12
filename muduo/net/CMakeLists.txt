@@ -1,9 +1,6 @@
 include(CheckFunctionExists)
 
 check_function_exists(accept4 HAVE_ACCEPT4)
-if(NOT HAVE_ACCEPT4)
-  set_source_files_properties(SocketsOps.cc PROPERTIES COMPILE_FLAGS "-DNO_ACCEPT4")
-endif()
 
 set(net_SRCS
   Acceptor.cc
@@ -27,15 +24,18 @@ set(net_SRCS
   TimerQueue.cc
   )
 
-add_library(muduo_net ${net_SRCS})
-target_link_libraries(muduo_net muduo_base)
+muduo_add_library(muduo_net ${net_SRCS})
+target_include_directories(muduo_net
+  PUBLIC
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+target_link_libraries(muduo_net PUBLIC muduo_base)
 
-#add_library(muduo_net_cpp11 ${net_SRCS})
-#target_link_libraries(muduo_net_cpp11 muduo_base_cpp11)
-#set_target_properties(muduo_net_cpp11 PROPERTIES COMPILE_FLAGS "-std=c++0x")
+if(NOT HAVE_ACCEPT4)
+  target_compile_definitions(muduo_net PRIVATE NO_ACCEPT4)
+endif()
 
-install(TARGETS muduo_net DESTINATION lib)
-#install(TARGETS muduo_net_cpp11 DESTINATION lib)
+muduo_install_library(muduo_net)
 
 set(HEADERS
   Buffer.h
@@ -51,7 +51,7 @@ set(HEADERS
   TcpServer.h
   TimerId.h
   )
-install(FILES ${HEADERS} DESTINATION include/muduo/net)
+install(FILES ${HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/muduo/net")
 
 add_subdirectory(http)
 add_subdirectory(inspect)
@@ -60,10 +60,7 @@ if(MUDUO_BUILD_EXAMPLES)
   add_subdirectory(tests)
 endif()
 
-if(PROTOBUF_FOUND)
+if(MUDUO_PROTOBUF_FOUND)
   add_subdirectory(protobuf)
   add_subdirectory(protorpc)
-else()
-  add_subdirectory(protobuf EXCLUDE_FROM_ALL)
-  add_subdirectory(protorpc EXCLUDE_FROM_ALL)
 endif()

@@ -12,7 +12,7 @@
 
 extern "C"
 {
-  struct hostent;
+  struct ares_addrinfo;
   struct ares_channeldata;
   typedef struct ares_channeldata* ares_channel;
 }
@@ -64,11 +64,11 @@ class Resolver : muduo::noncopyable
 
   void onRead(int sockfd, muduo::Timestamp t);
   void onTimer();
-  void onQueryResult(int status, struct hostent* result, const Callback& cb);
+  void onQueryResult(int status, const struct ares_addrinfo* result, const Callback& cb);
   void onSockCreate(int sockfd, int type);
   void onSockStateChange(int sockfd, bool read, bool write);
 
-  static void ares_host_callback(void* data, int status, int timeouts, struct hostent* hostent);
+  static void ares_addrinfo_callback(void* data, int status, int timeouts, struct ares_addrinfo* result);
   static int ares_sock_create_callback(int sockfd, int type, void* data);
   static void ares_sock_state_callback(void* data, int sockfd, int read, int write);
 };

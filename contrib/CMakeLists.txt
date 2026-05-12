@@ -1,11 +1,7 @@
-if(HIREDIS_INCLUDE_DIR AND HIREDIS_LIBRARY)
+if(TARGET muduo::hiredis)
   add_subdirectory(hiredis)
-else()
-  add_subdirectory(hiredis EXCLUDE_FROM_ALL)
 endif()
 
-if(THRIFT_COMPILER AND THRIFT_INCLUDE_DIR AND THRIFT_LIBRARY)
+if(THRIFT_COMPILER AND TARGET muduo::thrift)
   add_subdirectory(thrift)
-else()
-  add_subdirectory(thrift EXCLUDE_FROM_ALL)
 endif()

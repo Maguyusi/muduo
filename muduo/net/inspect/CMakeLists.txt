@@ -5,22 +5,22 @@ set(inspect_SRCS
   SystemInspector.cc
   )
 
-add_library(muduo_inspect ${inspect_SRCS})
-target_link_libraries(muduo_inspect muduo_http)
+muduo_add_library(muduo_inspect ${inspect_SRCS})
+target_link_libraries(muduo_inspect PUBLIC muduo_http)
 
-if(TCMALLOC_INCLUDE_DIR AND TCMALLOC_LIBRARY)
-  set_target_properties(muduo_inspect PROPERTIES COMPILE_FLAGS "-DHAVE_TCMALLOC")
-  target_link_libraries(muduo_inspect tcmalloc_and_profiler)
+if(TARGET muduo::tcmalloc)
+  target_compile_definitions(muduo_inspect PRIVATE HAVE_TCMALLOC)
+  target_link_libraries(muduo_inspect PRIVATE muduo::tcmalloc)
 endif()
 
-install(TARGETS muduo_inspect DESTINATION lib)
+muduo_install_library(muduo_inspect)
 set(HEADERS
   Inspector.h
   )
-install(FILES ${HEADERS} DESTINATION include/muduo/net/inspect)
+install(FILES ${HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/muduo/net/inspect")
 
 if(MUDUO_BUILD_EXAMPLES)
-add_executable(inspector_test tests/Inspector_test.cc)
-target_link_libraries(inspector_test muduo_inspect)
+  muduo_add_executable(inspector_test tests/Inspector_test.cc)
+  target_link_libraries(inspector_test PRIVATE muduo_inspect)
 endif()
 

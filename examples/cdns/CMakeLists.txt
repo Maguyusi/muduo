@@ -1,10 +1,12 @@
-add_library(muduo_cdns Resolver.cc)
-target_link_libraries(muduo_cdns muduo_net)
-target_link_libraries(muduo_cdns cares)
+muduo_add_library(muduo_cdns Resolver.cc)
+target_link_libraries(muduo_cdns
+  PUBLIC
+    muduo_net
+  PRIVATE
+    muduo::cares)
 
-install(TARGETS muduo_cdns DESTINATION lib)
-install(FILES Resolver.h DESTINATION include/muduo/cdns)
+muduo_install_library(muduo_cdns)
+install(FILES Resolver.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/muduo/cdns")
 
-add_executable(cdns dns.cc)
-target_link_libraries(cdns muduo_cdns)
-
+muduo_add_executable(cdns dns.cc)
+target_link_libraries(cdns PRIVATE muduo_cdns)

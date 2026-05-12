@@ -1,9 +1,9 @@
-add_executable(filetransfer_download download.cc)
-target_link_libraries(filetransfer_download muduo_net)
+muduo_add_executable(filetransfer_download download.cc)
+target_link_libraries(filetransfer_download PRIVATE muduo_net)
 
-add_executable(filetransfer_download2 download2.cc)
-target_link_libraries(filetransfer_download2 muduo_net)
+muduo_add_executable(filetransfer_download2 download2.cc)
+target_link_libraries(filetransfer_download2 PRIVATE muduo_net)
 
-add_executable(filetransfer_download3 download3.cc)
-target_link_libraries(filetransfer_download3 muduo_net)
+muduo_add_executable(filetransfer_download3 download3.cc)
+target_link_libraries(filetransfer_download3 PRIVATE muduo_net)
 
